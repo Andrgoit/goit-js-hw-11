@@ -1,24 +1,31 @@
-const form = document.querySelector('#search-form');
-const gallery = document.querySelector('.gallery');
-const loadMoreBtn = document.querySelector('.load-more');
+import ApiService from './js/api-service';
+const refs = {
+  form: document.querySelector('#search-form'),
+  gallery: document.querySelector('.gallery'),
+  loadMoreBtn: document.querySelector('.load-more'),
+};
 
-const BASE_URL = 'https://pixabay.com/api/';
-const KEY = '28166430-49d596e3415ce5cac11c6cb0f';
-let page = 1;
+refs.form.addEventListener('submit', formHandler);
+refs.loadMoreBtn.addEventListener('click', loadMore);
 
-form.addEventListener('submit', formHandler);
-loadMoreBtn.addEventListener('click', formHandler);
+refs.loadMoreBtn.classList.add('is-hidden');
+
+const newApiService = new ApiService();
 
 function formHandler(e) {
   e.preventDefault();
-  //   console.log(e.currentTarget.elements);
-  const inputValue = e.currentTarget.elements.searchQuery.value;
+  refs.gallery.innerHTML = '';
 
-  if (inputValue !== '') {
-    // console.log(inputValue);
-    fetchingUrl(inputValue)
+  newApiService.value = e.currentTarget.elements.searchQuery.value.trim();
+  newApiService.resetPage();
+
+  if (newApiService.value !== '') {
+    // console.log(newApiService.value);
+
+    newApiService
+      .fetchingUrl()
       .then(response => {
-        page += 1;
+        refs.loadMoreBtn.classList.remove('is-hidden');
         markupImages(response);
       })
       .catch(error => {
@@ -28,26 +35,12 @@ function formHandler(e) {
   return;
 }
 
-const searchParams = new URLSearchParams({
-  image_type: 'photo',
-  orientation: 'horizontal',
-  safesearch: true,
-  per_page: 4,
-  page: page,
-});
-
-function fetchingUrl(q) {
-  return fetch(`${BASE_URL}?key=${KEY}&q=${q}&${searchParams}`)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(response.status);
-      }
-
-      return response.json();
-    })
-    .catch(error => {
-      console.log(error);
-    });
+function loadMore() {
+  refs.loadMoreBtn.classList.add('is-hidden');
+  newApiService.fetchingUrl().then(response => {
+    refs.loadMoreBtn.classList.remove('is-hidden');
+    markupImages(response);
+  });
 }
 
 function markupImages(images) {
@@ -85,7 +78,7 @@ function markupImages(images) {
         }
       )
       .join('');
-    gallery.innerHTML = markup;
+    refs.gallery.insertAdjacentHTML('beforeend', markup);
   } else {
     console.log('ничего не найдено');
   }
