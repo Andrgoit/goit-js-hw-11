@@ -1,4 +1,6 @@
 import ApiService from './js/api-service';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
+
 const refs = {
   form: document.querySelector('#search-form'),
   gallery: document.querySelector('.gallery'),
@@ -46,7 +48,13 @@ function loadMore() {
 function markupImages(images) {
   //   console.log(images);
   const imageArr = images.hits;
+  console.log(newApiService.page * imageArr.length);
+  console.log(images.totalHits);
   if (imageArr.length !== 0) {
+    if (images.totalHits === newApiService.page * imageArr.length) {
+      refs.loadMoreBtn.classList.add('is-hidden');
+      Notify.info(`We're sorry, but you've reached the end of search results.`);
+    }
     const markup = imageArr
       .map(
         ({
@@ -80,6 +88,9 @@ function markupImages(images) {
       .join('');
     refs.gallery.insertAdjacentHTML('beforeend', markup);
   } else {
-    console.log('ничего не найдено');
+    refs.loadMoreBtn.classList.add('is-hidden');
+    Notify.failure(
+      'Sorry, there are no images matching your search query. Please try again.'
+    );
   }
 }
