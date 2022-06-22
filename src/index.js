@@ -14,7 +14,7 @@ refs.loadMoreBtn.classList.add('is-hidden');
 
 const newApiService = new ApiService();
 
-function formHandler(e) {
+async function formHandler(e) {
   e.preventDefault();
   refs.gallery.innerHTML = '';
 
@@ -24,34 +24,50 @@ function formHandler(e) {
   if (newApiService.value !== '') {
     // console.log(newApiService.value);
 
-    newApiService
-      .fetchingUrl()
-      .then(response => {
-        refs.loadMoreBtn.classList.remove('is-hidden');
-        markupImages(response);
-      })
-      .catch(error => {
-        console.log(error);
-      });
+    // newApiService
+    //   .fetchingUrl()
+    //   .then(response => {
+    //     refs.loadMoreBtn.classList.remove('is-hidden');
+    //     markupImages(response);
+    //   })
+    //   .catch(error => {
+    //     console.log(error);
+    //   });
+
+    try {
+      const response = await newApiService.fetchingUrl();
+      refs.loadMoreBtn.classList.remove('is-hidden');
+      markupImages(response);
+    } catch (error) {
+      console.log(error);
+    }
   }
   return;
 }
 
-function loadMore() {
-  refs.loadMoreBtn.classList.add('is-hidden');
-  newApiService.fetchingUrl().then(response => {
+async function loadMore() {
+  // refs.loadMoreBtn.classList.add('is-hidden');
+  // newApiService.fetchingUrl().then(response => {
+  //   refs.loadMoreBtn.classList.remove('is-hidden');
+  //   markupImages(response);
+  // });
+  try {
+    refs.loadMoreBtn.classList.add('is-hidden');
+    const response = await newApiService.fetchingUrl();
     refs.loadMoreBtn.classList.remove('is-hidden');
     markupImages(response);
-  });
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 function markupImages(images) {
   //   console.log(images);
-  const imageArr = images.hits;
-  console.log(newApiService.page * imageArr.length);
-  console.log(images.totalHits);
+  const imageArr = images.data.hits;
+  // console.log(newApiService.page * imageArr.length);
+  // console.log(images.totalHits);
   if (imageArr.length !== 0) {
-    if (images.totalHits === newApiService.page * imageArr.length) {
+    if (images.totalHits < newApiService.page * imageArr.length) {
       refs.loadMoreBtn.classList.add('is-hidden');
       Notify.info(`We're sorry, but you've reached the end of search results.`);
     }
